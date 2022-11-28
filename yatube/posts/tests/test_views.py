@@ -50,7 +50,7 @@ class TaskPagesTests(TestCase):
     def tearDownClass(cls):
         super().tearDownClass()
         shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
-        
+
     def setUp(self):
         cache.clear()
         self.guest_client = Client()
