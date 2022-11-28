@@ -49,20 +49,12 @@ class TaskPagesTests(TestCase):
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
-        # Модуль shutil - библиотека Python с удобными инструментами
-        # для управления файлами и директориями:
-        # создание, удаление, копирование, перемещение, изменение папок
-        # Метод shutil.rmtree удаляет директорию и всё её содержимое
         shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
-        # print('Отработал tearDownClass')
-
+        
     def setUp(self):
-        # Создаем неавторизованный клиент
+        cache.clear()
         self.guest_client = Client()
-        # Создаем пользователя
-        # Создаем второй клиент
         self.authorized_client = Client()
-        # Авторизуем пользователя
         self.authorized_client.force_login(self.user)
 
     def cheking_post(self, test_post_object):
@@ -219,6 +211,7 @@ class PaginatorViewsTest(TestCase):
 
     def setUp(self):
         self.unauthorized_client = Client()
+        cache.clear()
 
     def test_paginator_on_index_grouplist_profile_pages(self):
         """Проверка пагинации на страницах index, group_list, profile"""
@@ -303,11 +296,9 @@ class FollowingTest(TestCase):
     def test_unfollow_author(self):
         """Тест отписки от автора"""
 
-        self.authorized_follower.post(
-            reverse(
-                'posts:profile_follow',
-                kwargs={'username': self.author.username}
-            )
+        Follow.objects.create(
+            author=self.author,
+            user=self.follower,
         )
         count_followers_after_follow = Follow.objects.count()
         self.authorized_follower.post(
@@ -324,11 +315,9 @@ class FollowingTest(TestCase):
 
     def test_check_index_page_follower(self):
         """Проверка, что посты появляются в ленте подписок"""
-        self.authorized_follower.post(
-            reverse(
-                'posts:profile_follow',
-                kwargs={'username': self.author.username}
-            )
+        Follow.objects.create(
+            author=self.author,
+            user=self.follower,
         )
         response = self.authorized_follower.get(reverse('posts:follow_index'))
         test_post_object = response.context['page_obj'][0]

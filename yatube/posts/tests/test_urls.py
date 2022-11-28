@@ -2,7 +2,7 @@ from http import HTTPStatus
 from django.shortcuts import get_object_or_404
 from django.test import Client, TestCase
 
-from posts.models import Group, Post, User
+from posts.models import Group, Post, User, Follow
 
 
 class PostURLTest(TestCase):
@@ -17,6 +17,8 @@ class PostURLTest(TestCase):
         cls.authorized_client = Client()
         # Авторизуем пользователя
         cls.authorized_client.force_login(cls.user)
+        cls.author = cls.user
+        cls.authorized_client.force_login(cls.author)
 
         group = Group.objects.create(
             title='Тестовая Группа',
@@ -53,12 +55,27 @@ class PostURLTest(TestCase):
             '/posts/1/',
             '/profile/auth/',
             '/create/',
-
         ]
         for url in url_names:
             with self.subTest(url=url):
                 response = self.authorized_client.get(url)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_can_follow(self):
+        """Подписка доступна авторизованному пользователю"""
+        url_name = '/profile/auth/follow/'
+        response = self.authorized_client.get(url_name)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_can_unfollow(self):
+        """Отписка доступна авторизованному пользователю"""
+        Follow.objects.create(
+            author=self.author,
+            user=self.user
+        )
+        url_name = '/profile/auth/unfollow/'
+        response = self.authorized_client.get(url_name)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
 
     def test_home_url_exists_for_author(self):
         """проверка доступности страниц только автору."""

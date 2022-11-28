@@ -83,3 +83,6 @@ class Follow(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Author'
     )
+
+    class Meta:
+        ordering = ["-user"]
